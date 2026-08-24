@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "org.ukrfish.sk/sudnokontrol",
+  "title": "SudnoKontrol",
+  "description": "Ukrainian vessel registry: search by number/name/owner, full records, stats. No API key required.",
+  "repository": {
+    "url": "https://github.com/ailubes/sudnokontrol-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.sk.ukrfish.org/mcp"
+    }
+  ]
+}
