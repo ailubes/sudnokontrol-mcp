@@ -1,7 +1,7 @@
 {
   "name": "sudnokontrol-mcp",
   "version": "1.0.0",
-  "description": "MCP server for the Ukrainian vessel registry (SudnoKontrol): search vessels by registration number, name or owner; look up full registry records; consumer agent access to public data.",
+  "description": "MCP server for the Ukrainian vessel registry (SudnoKontrol): search vessels by registration number, name or owner; look up full registry records; query aggregate statistics. No API key required.",
   "type": "module",
   "bin": {
     "sudnokontrol-mcp": "./dist/index.js"
@@ -9,6 +9,11 @@
   "files": [
     "dist"
   ],
+  "mcpServers": {
+    "sudnokontrol": {
+      "url": "https://api.sk.ukrfish.org/mcp"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
@@ -22,6 +27,9 @@
     "registry",
     "ukraine",
     "maritime",
+    "government-data",
+    "open-data",
+    "search",
     "ai",
     "agent",
     "claude",

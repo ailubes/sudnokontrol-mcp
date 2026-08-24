@@ -55,6 +55,12 @@ npx sudnokontrol-mcp http
 # or: PORT=9000 HOST=127.0.0.1 npx sudnokontrol-mcp http
 ```
 
+Install from this repo directly:
+
+```bash
+npm install -g github:ailubes/sudnokontrol-mcp
+```
+
 To point at a different base (e.g. your own deployment):
 
 ```bash
