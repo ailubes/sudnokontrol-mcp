@@ -17,7 +17,7 @@ Data is read-only and public — **no API key required**.
 | `get_registry_stats` | Aggregate public vessel counts ("how many vessels..."). |
 | `get_dataset_metadata` | Dataset context: sources, import dates, record counts, fields. |
 
-Every search/lookup result includes a `web_url` → `https://sk.ukrfish.org/registry?vessel=<reg>` where users can order an **official registry excerpt** (PDF with QR-code verification, 99,00 грн).
+Every search/lookup result includes a `web_url` → `https://sk.ukrfish.org/registry?vessel=<reg>` pointing to the public vessel information page.
 
 ## Quick start — hosted server
 

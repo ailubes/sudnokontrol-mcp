@@ -7,6 +7,18 @@ import { z } from 'zod';
  */
 const API_BASE = process.env.SUDNOKONTROL_API || 'https://api.sk.ukrfish.org/api/ai';
 
+/**
+ * Read-only hints shared by all SudnoKontrol tools (required by OpenAI plugin review).
+ * These tools query an external public dataset, never modify anything, are
+ * idempotent, and are not destructive.
+ */
+const READ_ONLY_ANNOTATIONS = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+} as const;
+
 async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
@@ -38,7 +50,7 @@ export function createMcpServer(): McpServer {
     {
       title: 'Search Ukrainian national vessel registries',
       description:
-        'Search Державний судновий реєстр України and Суднова книга України by free-text query and structured filters. Deterministic ordering with exact registration-number matches first. Each result includes a web_url linking to the public site for ordering an official registry excerpt.',
+        'Search public data from the Ukrainian State Ship Registry and Ship Book by free-text query and structured filters. Deterministic ordering with exact registration-number matches first. Handles Cyrillic and Latin scripts and separator-insensitive numbers (УПС-0129 ≡ УПС 0129 ≡ UPS-0129). Each result includes a web_url pointing to the public vessel information page.',
       inputSchema: {
         q: z.string().min(2).optional().describe('Registration number, vessel name, or owner name. Accepts Latin or Cyrillic.'),
         vessel_type: z.string().optional().describe('Partial match on vessel type (e.g. земснаряд).'),
@@ -49,6 +61,7 @@ export function createMcpServer(): McpServer {
         limit: z.number().int().min(1).max(50).optional().describe('Page size.'),
         offset: z.number().int().min(0).optional().describe('Pagination offset.'),
       },
+      annotations: READ_ONLY_ANNOTATIONS,
     },
     async (args) => {
       try {
@@ -78,12 +91,13 @@ export function createMcpServer(): McpServer {
   server.registerTool(
     'lookup_vessel',
     {
-      title: 'Look up a vessel by registration number',
+      title: 'Look up a Ukrainian vessel',
       description:
-        'Exact vessel lookup by normalized registration number (handles -, ., and space variance, and Latin/Cyrillic forms). Returns full registry data plus a web_url to the public site for ordering an official excerpt.',
+        'Look up a vessel in the Ukrainian vessel registries using its registration number. Handles -, ., and space variance and Latin/Cyrillic forms. Returns the full public registry record, including a web_url pointing to the public vessel information page.',
       inputSchema: {
-        registration_number: z.string().min(3).describe('Registration number (e.g. УПС-0129).'),
+        registration_number: z.string().min(3).describe('Registration number, for example УПС-0129.'),
       },
+      annotations: READ_ONLY_ANNOTATIONS,
     },
     async (args) => {
       try {
@@ -107,6 +121,7 @@ export function createMcpServer(): McpServer {
     {
       title: 'Get aggregate vessel counts',
       description: 'Aggregate public vessel counts for answering "how many vessels" questions.',
+      annotations: READ_ONLY_ANNOTATIONS,
     },
     async () => {
       try {
@@ -125,6 +140,7 @@ export function createMcpServer(): McpServer {
       title: 'Describe available vessel-registry datasets',
       description:
         'Describes available data sources (Державний судновий реєстр / Суднова книга), freshness (import dates), record counts, and available fields.',
+      annotations: READ_ONLY_ANNOTATIONS,
     },
     async () => {
       try {
