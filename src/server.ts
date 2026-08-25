@@ -9,14 +9,15 @@ const API_BASE = process.env.SUDNOKONTROL_API || 'https://api.sk.ukrfish.org/api
 
 /**
  * Read-only hints shared by all SudnoKontrol tools (required by OpenAI plugin review).
- * These tools query an external public dataset, never modify anything, are
- * idempotent, and are not destructive.
+ * These tools query two fixed registry datasets through a defined API — they never
+ * modify anything, are idempotent, and operate on a bounded/closed data source
+ * (not an open world of arbitrary external entities), hence openWorldHint=false.
  */
 const READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
   idempotentHint: true,
-  openWorldHint: true,
+  openWorldHint: false,
 } as const;
 
 async function getJson(url: string): Promise<Record<string, unknown>> {
@@ -102,6 +103,7 @@ export function createMcpServer(): McpServer {
         offset: z.number().int().min(0).optional().describe('Pagination offset.'),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      outputSchema: searchOutput,
     },
     async (args) => {
       try {
