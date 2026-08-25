@@ -1,6 +1,6 @@
 {
   "name": "sudnokontrol-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for the Ukrainian vessel registry (SudnoKontrol): search vessels by registration number, name or owner; look up full registry records; query aggregate statistics. No API key required.",
   "type": "module",
   "bin": {

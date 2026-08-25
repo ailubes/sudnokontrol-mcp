@@ -19,7 +19,7 @@ const READ_ONLY_ANNOTATIONS = {
   openWorldHint: true,
 } as const;
 
-async function getJson(url: string): Promise<unknown> {
+async function getJson(url: string): Promise<Record<string, unknown>> {
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
   });
@@ -42,8 +42,48 @@ function qs(params: Record<string, string | number | undefined>): string {
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: 'SudnoKontrol',
-    version: '1.0.0',
+    version: '1.0.1',
   });
+
+  // Output schemas (structured content) — permissive passthrough so proxy
+  // responses that evolve over time still validate.
+  const vesselRecord = z.object({
+    registration_number: z.string(),
+    name: z.string(),
+    vessel_type: z.string().nullable().optional(),
+    owner_name: z.string().nullable().optional(),
+    owner_address: z.string().nullable().optional(),
+    build_year: z.number().int().nullable().optional(),
+    home_port: z.string().nullable().optional(),
+    tonnage: z.union([z.string(), z.number()]).nullable().optional(),
+    source: z.string().optional(),
+    source_name: z.string().optional(),
+    match: z.object({ field: z.string(), score: z.number() }).optional(),
+    web_url: z.string().optional(),
+  }).passthrough();
+  const searchOutput = z.object({
+    items: z.array(vesselRecord),
+    total: z.number().int(),
+  }).passthrough();
+  const statsOutput = z.object({
+    total_vessels: z.number().int().optional(),
+    sources: z.array(z.object({
+      source: z.string(),
+      name: z.string(),
+      count: z.number().int(),
+    })).optional(),
+  }).passthrough();
+  const metaOutput = z.object({
+    api: z.object({ name: z.string(), version: z.string(), description: z.string() }).optional(),
+    data_sources: z.array(z.object({
+      source: z.string(),
+      name: z.string(),
+      imported_at: z.string().nullable().optional(),
+      record_count: z.number().int(),
+    })).optional(),
+    example_queries: z.array(z.string()).optional(),
+    fields: z.array(z.string()).optional(),
+  }).passthrough();
 
   server.registerTool(
     'search_vessel_registries',
@@ -78,8 +118,10 @@ export function createMcpServer(): McpServer {
             offset: a.offset,
           })}`
         )) as { items: unknown[]; total: number };
+        const payload = { items: data.items, total: data.total };
         return {
-          content: [{ type: 'text', text: JSON.stringify({ items: data.items, total: data.total }) }],
+          structuredContent: payload,
+          content: [{ type: 'text', text: JSON.stringify(payload) }],
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'search_failed';
@@ -98,14 +140,18 @@ export function createMcpServer(): McpServer {
         registration_number: z.string().min(3).describe('Registration number, for example УПС-0129.'),
       },
       annotations: READ_ONLY_ANNOTATIONS,
+      outputSchema: vesselRecord,
     },
     async (args) => {
       try {
         const a = args || {};
-        const data = (await getJson(
+        const data = await getJson(
           `${API_BASE}/registry/lookup/${encodeURIComponent(a.registration_number)}`
-        )) as unknown;
-        return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+        );
+        return {
+          structuredContent: data,
+          content: [{ type: 'text', text: JSON.stringify(data) }],
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'lookup_failed';
         if (message.includes('404')) {
@@ -122,11 +168,15 @@ export function createMcpServer(): McpServer {
       title: 'Get aggregate vessel counts',
       description: 'Aggregate public vessel counts for answering "how many vessels" questions.',
       annotations: READ_ONLY_ANNOTATIONS,
+      outputSchema: statsOutput,
     },
     async () => {
       try {
         const data = await getJson(`${API_BASE}/stats`);
-        return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+        return {
+          structuredContent: data,
+          content: [{ type: 'text', text: JSON.stringify(data) }],
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'stats_failed';
         return { isError: true, content: [{ type: 'text', text: JSON.stringify({ error: message }) }] };
@@ -141,11 +191,15 @@ export function createMcpServer(): McpServer {
       description:
         'Describes available data sources (Державний судновий реєстр / Суднова книга), freshness (import dates), record counts, and available fields.',
       annotations: READ_ONLY_ANNOTATIONS,
+      outputSchema: metaOutput,
     },
     async () => {
       try {
         const data = await getJson(`${API_BASE}/meta`);
-        return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+        return {
+          structuredContent: data,
+          content: [{ type: 'text', text: JSON.stringify(data) }],
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'metadata_failed';
         return { isError: true, content: [{ type: 'text', text: JSON.stringify({ error: message }) }] };

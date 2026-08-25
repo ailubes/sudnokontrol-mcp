@@ -5,7 +5,7 @@ Model Context Protocol server for the **Ukrainian national vessel registry** —
 Data is read-only and public — **no API key required**.
 
 - **Hosted endpoint (recommended):** `https://api.sk.ukrfish.org/mcp` (Streamable HTTP)
-- **Official docs:** `https://sk.ukrfish.org/api-docs` and `https://sk.ukrfish.org/info/ai-agents`
+- **Project docs:** `https://sk.ukrfish.org/api-docs` and `https://sk.ukrfish.org/info/ai-agents`
 - **Discovery:** `https://sk.ukrfish.org/llms.txt`
 
 ## Tools
