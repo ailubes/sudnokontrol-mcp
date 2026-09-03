@@ -106,6 +106,8 @@ Response: { registration_number: "УПС-4249", name: "ua 5614 KV", owner_name: 
 
 ## License
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/ailubes-sudnokontrol-mcp-79ey3z)](https://m8ven.ai/mcp/ailubes-sudnokontrol-mcp-79ey3z)
+
 MIT
 
 ## Disclaimer
